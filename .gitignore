@@ -1,0 +1,8 @@
+# Fichiers exécutables
+*.exe
+*.out
+*.o
+
+# Exécutables de notre projet
+code/esinos
+code/rr
