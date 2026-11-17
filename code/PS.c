@@ -1,57 +1,90 @@
 
 #include <stdio.h>
 
-int main() {
+#define MAX 100
 
-    int arrivee[3];
-    int duree[3];
-    int priorite[3];
+typedef struct {
+    int id;
+    int arrivee;
+    int duree;
+    int priorite;
+    int debut;
+    int fin;
+    int attente;
+    int sejour;
+    int termine;
+} Processus;
 
-    // Saisie des processus
-    for (int i = 0; i < 3; i++) {
+int PS() {
 
-        printf("\nProcessus P%d\n", i + 1);
+    Processus p[MAX];
+    int n;
+
+    double total_attente = 0;
+    double total_sejour = 0;
+
+    printf("===== ESINOS : PRIORITY SCHEDULING =====\n");
+
+    // 1. Nombre de processus
+    printf("Nombre de processus (1-%d) : ", MAX);
+
+    if (scanf("%d", &n) != 1 || n < 1 || n > MAX) {
+        printf("Erreur : nombre invalide.\n");
+        return 1;
+    }
+
+    // 2. Saisie des processus
+    for (int i = 0; i < n; i++) {
+
+        p[i].id = i + 1;
+        p[i].termine = 0;
+
+        printf("\n--- Processus P%d ---\n", p[i].id);
 
         printf("Temps d'arrivee : ");
-        scanf("%d", &arrivee[i]);
+        if (scanf("%d", &p[i].arrivee) != 1 ||
+            p[i].arrivee < 0) {
+            printf("Erreur : arrivee invalide.\n");
+            return 1;
+        }
 
         printf("Duree d'execution : ");
-        scanf("%d", &duree[i]);
+        if (scanf("%d", &p[i].duree) != 1 ||
+            p[i].duree <= 0) {
+            printf("Erreur : duree invalide.\n");
+            return 1;
+        }
 
-        printf("Priorite : ");
-        scanf("%d", &priorite[i]);
-
-        if (arrivee[i] < 0 || duree[i] <= 0) {
-            printf("Erreur : arrivee >= 0 et duree > 0.\n");
+        printf("Priorite (1 = plus elevee) : ");
+        if (scanf("%d", &p[i].priorite) != 1 ||
+            p[i].priorite < 1) {
+            printf("Erreur : priorite invalide.\n");
             return 1;
         }
     }
 
-    // Variables d'ordonnancement
-    int termine[3] = {0, 0, 0};
-    int attente[3] = {0, 0, 0};
-    int sejour[3] = {0, 0, 0};
-
+    // 3. Variables d'ordonnancement
     int temps = 0;
     int nb_termines = 0;
 
-    float total_attente = 0;
-    float total_sejour = 0;
+    int ordre[MAX];
+    int nb_executions = 0;
 
-    printf("\n--- Ordonnancement Priority ---\n");
-
-    // Ordonnancement non preemptif
-    while (nb_termines < 3) {
+    // 4. Ordonnancement Priority non preemptif
+    while (nb_termines < n) {
 
         int choix = -1;
 
-        // Chercher le processus avec la meilleure priorite
-        for (int i = 0; i < 3; i++) {
+        // Chercher le processus disponible
+        // ayant la meilleure priorite
+        for (int i = 0; i < n; i++) {
 
-            if (termine[i] == 0 && arrivee[i] <= temps) {
+            if (!p[i].termine && p[i].arrivee <= temps) {
 
                 if (choix == -1 ||
-                    priorite[i] < priorite[choix]) {
+                    p[i].priorite < p[choix].priorite ||
+                    (p[i].priorite == p[choix].priorite &&
+                     p[i].arrivee < p[choix].arrivee)) {
 
                     choix = i;
                 }
@@ -60,47 +93,93 @@ int main() {
 
         // Aucun processus disponible
         if (choix == -1) {
-            temps++;
+
+            int prochaine_arrivee = -1;
+
+            for (int i = 0; i < n; i++) {
+
+                if (!p[i].termine &&
+                    (prochaine_arrivee == -1 ||
+                     p[i].arrivee < prochaine_arrivee)) {
+
+                    prochaine_arrivee = p[i].arrivee;
+                }
+            }
+
+            temps = prochaine_arrivee;
+            continue;
         }
-        else {
 
-            int debut = temps;
+        // 5. Execution du processus choisi
+        p[choix].debut = temps;
+        p[choix].fin = temps + p[choix].duree;
 
-            // Execution du processus
-            temps = temps + duree[choix];
+        p[choix].sejour =
+            p[choix].fin - p[choix].arrivee;
 
-            printf("P%d : %d -> %d\n",
-                   choix + 1, debut, temps);
+        p[choix].attente =
+            p[choix].debut - p[choix].arrivee;
 
-            // Calcul des temps
-            sejour[choix] = temps - arrivee[choix];
+        total_attente += p[choix].attente;
+        total_sejour += p[choix].sejour;
 
-            attente[choix] = sejour[choix] - duree[choix];
+        ordre[nb_executions++] = choix;
 
-            total_attente += attente[choix];
-            total_sejour += sejour[choix];
+        temps = p[choix].fin;
 
-            // Marquer le processus comme termine
-            termine[choix] = 1;
-            nb_termines++;
-        }
+        p[choix].termine = 1;
+        nb_termines++;
     }
 
-    // Affichage des resultats
-    printf("\n--- Resultats Priority Scheduling ---\n");
+    // 6. Tableau des resultats
+    printf("\n========== RESULTATS PRIORITY ==========\n");
 
-    for (int i = 0; i < 3; i++) {
+    printf("PID\tArr\tDuree\tPrio\tDebut\tFin\tAtt\tSejour\n");
 
-        printf("P%d : Attente = %d, Sejour = %d\n",
-               i + 1, attente[i], sejour[i]);
+    for (int i = 0; i < n; i++) {
+
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+               p[i].id,
+               p[i].arrivee,
+               p[i].duree,
+               p[i].priorite,
+               p[i].debut,
+               p[i].fin,
+               p[i].attente,
+               p[i].sejour);
     }
 
+    // 7. Moyennes
     printf("\nAttente moyenne : %.2f\n",
-           total_attente / 3);
+           total_attente / n);
 
     printf("Sejour moyen : %.2f\n",
-           total_sejour / 3);
+           total_sejour / n);
+
+    // 8. Diagramme de Gantt
+    printf("\n========== GANTT PRIORITY ==========\n");
+
+    int precedent = 0;
+
+    for (int k = 0; k < nb_executions; k++) {
+
+        int i = ordre[k];
+
+        if (precedent < p[i].debut) {
+
+            printf("[%d - %d : IDLE] ",
+                   precedent, p[i].debut);
+        }
+
+        printf("[%d - %d : P%d] ",
+               p[i].debut,
+               p[i].fin,
+               p[i].id);
+
+        precedent = p[i].fin;
+    }
+
+    printf("\n");
 
     return 0;
 }
-
