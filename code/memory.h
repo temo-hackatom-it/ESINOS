@@ -12,4 +12,5 @@ int translate_address(int page_table[], int logical_address);
 
 int fifo_page_replacement(int page_table[], const int pages[], int page_count);
 
+int lru_page_replacement(int page_table[], const int pages[], int page_count);
 #endif
