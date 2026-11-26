@@ -65,6 +65,12 @@ Le TLB utilise une table des pages fixe. L'EAT est calculé pour les accès aux 
 
 Comprendre les mécanismes des systèmes d'exploitation, comparer les algorithmes, développer des compétences en C et collaborer avec Git et GitHub.
 
+## 🎥 Vidéo de démonstration
+
+La vidéo présente les fonctionnalités du simulateur ESINOS ainsi qu'une explication détaillée du code source.
+
+[▶ Regarder la démonstration ESINOS sur Google Drive](https://drive.google.com/drive/folders/1peZbB0GWgrYvjto7YscG7N3INJ1xu3gf?usp=sharing)
+
 ## Cadre académique
 
 - Université Internationale de Rabat — ESIN
